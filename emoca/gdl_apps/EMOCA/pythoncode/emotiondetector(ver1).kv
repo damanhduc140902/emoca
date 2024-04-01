@@ -1,0 +1,359 @@
+#:import Window kivy.core.window.Window
+
+ScreenManager:
+    MainScreen:
+        name: 'main'
+    EmotionDetectorScreen:
+        name: 'detector'
+    SplashScreen:
+        name: 'splash'
+
+<SplashScreen>:
+    FloatLayout:
+        size: root.size
+        canvas.before:
+            Color:
+                rgba: 251, 224, 224, 1 # Màu #FFE5CA
+            Rectangle:
+                size: self.size
+                pos: self.pos
+
+        Label:
+            text: 'SentiMate'
+            font_size: '24sp'
+            size_hint: None, None
+            size: self.texture_size
+            pos_hint: {'center_x': 0.5, 'center_y': 0.8}
+            color: 0, 0.2, 0.4, 1 
+            bold: True
+
+        Image:
+            source: 'images/app-logo.png'
+            size_hint: None, None
+            size: '200dp', '200dp'
+            pos_hint: {'center_x': 0.5, 'center_y': 0.6}
+            allow_stretch: True
+
+
+
+
+
+
+
+<MainScreen>:
+    FloatLayout:  # Sử dụng FloatLayout cho phép đặt các widgets ở bất kỳ đâu trên màn hình
+
+        Camera:
+            id: camera
+            resolution: (Window.width, Window.height)  # Đặt resolution để phù hợp với kích thước màn hình
+            #resolution: (360, 640)
+            play: True
+            size_hint: (1, 1)  # Chiếm toàn bộ màn hình
+            allow_stretch: True  # Cho phép căng để phù hợp với kích thước được chỉ định
+            keep_ratio: False
+        BoxLayout:  # Box cho các nút
+            size_hint: None, None
+            height: dp(96)
+            width: self.minimum_width
+            pos_hint: {'center_x': 0.5, 'center_y': 0.1}
+            padding: [dp(24), 0]
+            spacing: dp(24)
+            canvas.before:
+                Color:
+                    rgba: (251/255.0, 224/255.0, 224/255.0, 1)  # Màu của box
+                RoundedRectangle:
+                    size: self.size
+                    pos: self.pos
+                    radius: [dp(30),]
+
+            MDIconButton:
+                icon: "image-multiple"
+                icon_size: dp(40)
+                size_hint: None, None
+                size: dp(64), dp(64)
+                size_hint_y: 1
+                pos_hint: {'center_x': 0.2}
+                on_release: root.file_manager_open()
+
+
+            MDIconButton:
+                icon: 'camera-iris'
+                icon_size: dp(40)
+                size_hint: None, None
+                size: dp(64), dp(64)
+                size_hint_y: 1
+                pos_hint: {'center_x': 0.5}
+                on_release: root.capture()
+
+
+            MDIconButton:
+                icon: "emoticon-happy-outline"
+                icon_size: dp(40)
+                size_hint: None, None
+                size: dp(64), dp(64)
+                size_hint_y: 1
+                pos_hint: {'center_x': 0.8}
+                size: dp(64), dp(64)
+
+
+
+
+
+<EmotionDetectorScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        canvas.before:
+            Color:
+                rgba: (251/255.0, 224/255.0, 224/255.0, 1)  # Background color
+            Rectangle:
+                size: self.size
+                pos: self.pos
+
+        # Top navigation bar with a back button
+        BoxLayout:
+            size_hint_y: None
+            height: dp(56)
+            canvas.before:
+                Color:
+                    rgba: (84/255.0, 84/255.0, 84/255.0, 1)  # Navigation bar color
+                RoundedRectangle:
+                    size: self.size
+                    pos: self.pos
+                    radius: [0, 0, 10, 10]  # Rounded corners at the top
+            MDIconButton:
+                icon: "arrow-left"
+                user_font_size: "24sp"
+                theme_text_color: "Custom"
+                text_color: (1, 1, 1, 1)  # Adjust color as needed, perhaps white for visibility
+                md_bg_color: 0, 0, 0, 0  # Transparent background
+                pos_hint: {'center_y': .5}
+                on_release: root.manager.current = 'main'
+
+        # Emoji display
+        FloatLayout:
+            size_hint_y: 0.3    
+            Image:
+                id: emoji_image_display
+                size_hint: None, None
+                size: "48dp", "48dp"  # Set the size for your emoji images
+                pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                opacity: 0  # Start as invisible
+                canvas.before:
+                    Color:
+                        rgba: (229/255.0, 212/255.0, 239/255.0, 0.5)
+                    Ellipse:
+                        size: self.size
+                        pos: self.pos
+                        source: ""
+
+            Label:
+                id: emoji_label_display
+                font_name: 'seguiemj'
+                font_size: '84sp'
+                size_hint: None, None
+                size: self.texture_size[1] + dp(30), self.texture_size[1] + dp(30)
+                pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                opacity: 1  # Start as visible
+                canvas.before:
+                    Color:
+                        rgba: (229/255.0, 212/255.0, 239/255.0, 0.5)
+                    Ellipse:
+                        size: self.size
+                        pos: self.pos
+                        source: ""
+
+        # Predicted emotion label
+        MDLabel:
+            id: label
+            #text: "Happy"
+            font_name: 'pangram'
+            font_size: '24sp'
+            size_hint_y: 0.1  # Takes 10% of the available space
+            #height: self.texture_size[1]
+            #pos_hint: {'center_x': 0.5}
+            #margin: [0, dp(-50), 0, 0]
+            halign: "center"
+
+        # Bot response label
+        BoxLayout:
+            size_hint_y: 0.2
+            padding: dp(20)
+            canvas.before:
+                Color:
+                    rgba: (229/255.0, 212/255.0, 239/255.0, 0.5)
+                RoundedRectangle:
+                    size: self.size[0] - dp(40), self.height  # Subtracting padding from the width
+                    pos: self.x + dp(20), self.y  # Adding padding to the x position
+                    radius: [dp(15)]
+            MDLabel:
+                id: bot_response
+                #text: "Cảm xúc vui vẻ là một điều tuyệt vời. Hãy tiếp tục giữ nụ cười trên môi nhé!"
+                font_size: '20sp'
+                #size_hint_y: None
+                size_hint: (1.0, 1.0)
+                height: self.texture_size[1] + dp(40)
+                halign: "left"
+                #valign: "middle"
+                text_size: self.width - dp(40), None
+        
+        BoxLayout:
+            size_hint_y: None
+            height: dp(10)
+
+        BoxLayout:
+            size_hint_y: 0.3
+            padding: dp(20), 0
+            canvas.before:
+                Color:
+                    rgba: (229/255.0, 212/255.0, 239/255.0, 0.5)
+                RoundedRectangle:
+                    size: self.width - dp(40), self.height  # Subtracting horizontal padding
+                    pos: self.x + dp(20), self.y
+                    radius: [dp(15)]
+
+            ScrollView:
+                do_scroll_x: False
+                do_scroll_y: True
+
+                GridLayout:
+                    cols: 3
+                    size_hint_y: None
+                    row_default_height: (self.width - (2 * dp(20)) - (4 * dp(10))) / 3
+                    spacing: dp(10)
+                    padding: dp(20), dp(20)
+                    height: self.minimum_height
+
+                    Button:
+                        background_normal: ''
+                        background_color: (0, 0, 0, 0)  # Transparent background
+                        on_release: root.display_combined_emoji("😂")  # Method to handle emoji selection
+                        size_hint: None, None
+                        size: (self.parent.width - (2 * dp(20)) - (4 * dp(10))) / 3, (self.parent.width - (2 * dp(20)) - (4 * dp(10))) / 3
+                        text: "😂"
+                        font_name: 'seguiemj'
+                        font_size: "24sp"  # Smaller font size for the emoji
+                        canvas.before:
+                            Color:
+                                rgba: (0, 0, 0, 0.04)  # White for emoji background
+                            Ellipse:
+                                size: self.width - dp(10), self.height - dp(10)
+                                pos: self.x + dp(5), self.y + dp(5)
+
+                    Button:
+                        background_normal: ''
+                        background_color: (0, 0, 0, 0)  # Transparent background
+                        on_release: root.display_combined_emoji("😴")  # Method to handle emoji selection
+                        size_hint: None, None
+                        size: (self.parent.width - (2 * dp(20)) - (4 * dp(10))) / 3, (self.parent.width - (2 * dp(20)) - (4 * dp(10))) / 3
+                        text: "😴"
+                        font_name: 'seguiemj'
+                        font_size: "24sp"  # Smaller font size for the emoji
+                        canvas.before:
+                            Color:
+                                rgba: (0, 0, 0, 0.04)  # White for emoji background
+                            Ellipse:
+                                size: self.width - dp(10), self.height - dp(10)
+                                pos: self.x + dp(5), self.y + dp(5)
+                    
+                    Button:
+                        background_normal: ''
+                        background_color: (0, 0, 0, 0)  # Transparent background
+                        on_release: root.display_combined_emoji("🎉")  # Method to handle emoji selection
+                        size_hint: None, None
+                        size: (self.parent.width - (2 * dp(20)) - (4 * dp(10))) / 3, (self.parent.width - (2 * dp(20)) - (4 * dp(10))) / 3
+                        text: "🎉"
+                        font_name: 'seguiemj'
+                        font_size: "24sp"  # Smaller font size for the emoji
+                        canvas.before:
+                            Color:
+                                rgba: (0, 0, 0, 0.04)  # White for emoji background
+                            Ellipse:
+                                size: self.width - dp(10), self.height - dp(10)
+                                pos: self.x + dp(5), self.y + dp(5)
+                    
+                    Button:
+                        background_normal: ''
+                        background_color: (0, 0, 0, 0)  # Transparent background
+                        on_release: root.display_combined_emoji("😍")  # Method to handle emoji selection
+                        size_hint: None, None
+                        size: (self.parent.width - (2 * dp(20)) - (4 * dp(10))) / 3, (self.parent.width - (2 * dp(20)) - (4 * dp(10))) / 3
+                        text: "😍"
+                        font_name: 'seguiemj'
+                        font_size: "24sp"  # Smaller font size for the emoji
+                        canvas.before:
+                            Color:
+                                rgba: (0, 0, 0, 0.04)  # White for emoji background
+                            Ellipse:
+                                size: self.width - dp(10), self.height - dp(10)
+                                pos: self.x + dp(5), self.y + dp(5)
+
+                    Button:
+                        background_normal: ''
+                        background_color: (0, 0, 0, 0)  # Transparent background
+                        on_release: root.display_combined_emoji("🌧️")  # Method to handle emoji selection
+                        size_hint: None, None
+                        size: (self.parent.width - (2 * dp(20)) - (4 * dp(10))) / 3, (self.parent.width - (2 * dp(20)) - (4 * dp(10))) / 3
+                        text: "🌧️"
+                        font_name: 'seguiemj'
+                        font_size: "24sp"  # Smaller font size for the emoji
+                        canvas.before:
+                            Color:
+                                rgba: (0, 0, 0, 0.04)  # White for emoji background
+                            Ellipse:
+                                size: self.width - dp(10), self.height - dp(10)
+                                pos: self.x + dp(5), self.y + dp(5)
+                    
+                    Button:
+                        background_normal: ''
+                        background_color: (0, 0, 0, 0)  # Transparent background
+                        on_release: root.display_combined_emoji("🔥")  # Method to handle emoji selection
+                        size_hint: None, None
+                        size: (self.parent.width - (2 * dp(20)) - (4 * dp(10))) / 3, (self.parent.width - (2 * dp(20)) - (4 * dp(10))) / 3
+                        text: "🔥"
+                        font_name: 'seguiemj'
+                        font_size: "24sp"  # Smaller font size for the emoji
+                        canvas.before:
+                            Color:
+                                rgba: (0, 0, 0, 0.04)  # White for emoji background
+                            Ellipse:
+                                size: self.width - dp(10), self.height - dp(10)
+                                pos: self.x + dp(5), self.y + dp(5)
+                    
+                    Button:
+                        background_normal: ''
+                        background_color: (0, 0, 0, 0)  # Transparent background
+                        on_release: root.display_combined_emoji("💔")  # Method to handle emoji selection
+                        size_hint: None, None
+                        size: (self.parent.width - (2 * dp(20)) - (4 * dp(10))) / 3, (self.parent.width - (2 * dp(20)) - (4 * dp(10))) / 3
+                        text: "💔"
+                        font_name: 'seguiemj'
+                        font_size: "24sp"  # Smaller font size for the emoji
+                        canvas.before:
+                            Color:
+                                rgba: (0, 0, 0, 0.04)  # White for emoji background
+                            Ellipse:
+                                size: self.width - dp(10), self.height - dp(10)
+                                pos: self.x + dp(5), self.y + dp(5)
+
+                    Button:
+                        background_normal: ''
+                        background_color: (0, 0, 0, 0)  # Transparent background
+                        on_release: root.display_combined_emoji("🤯")  # Method to handle emoji selection
+                        size_hint: None, None
+                        size: (self.parent.width - (2 * dp(20)) - (4 * dp(10))) / 3, (self.parent.width - (2 * dp(20)) - (4 * dp(10))) / 3
+                        text: "🤯"
+                        font_name: 'seguiemj'
+                        font_size: "24sp"  # Smaller font size for the emoji
+                        canvas.before:
+                            Color:
+                                rgba: (0, 0, 0, 0.04)  # White for emoji background
+                            Ellipse:
+                                size: self.width - dp(10), self.height - dp(10)
+                                pos: self.x + dp(5), self.y + dp(5)
+
+                    
+    BoxLayout:
+        size_hint_y: 0.1
+        height: dp(20)
+
+
